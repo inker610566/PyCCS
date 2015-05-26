@@ -1,7 +1,7 @@
 #-*-coding:utf-8-*-
 import urllib, urllib2, re
 
-def seg(text):
+def seg(text, timeout=-1, retry=0):
     if not isinstance(text, unicode):
         try:
             text = text.decode('utf-8')
@@ -20,8 +20,18 @@ def seg(text):
         'query':text,
         'Submit':u'送出'.encode('cp950')
         })
+    
+    url_param = [url_tar, postdata] + ([timeout] if timeout != -1 else [])
 
-    res = opener.open(url_tar, postdata).read()
+    for retry_times in range(retry+1):
+        try:
+            res = opener.open(*url_param).read()
+        except urllib2.URLError as e:
+            if type(e.reason).__name__ != "timeout":
+                raise e
+        else:
+            break
+
     pat = re.compile("URL=\'/uwextract/pool/(\d*?).html\'")
     num = pat.search(res).group(1)
 
