@@ -37,7 +37,16 @@ def seg(text, timeout=-1, retry=0):
 
     url_fin = 'http://sunlight.iis.sinica.edu.tw/uwextract/show.php?id=%s&type=tag' % num
 
-    seg = urllib2.urlopen(url_fin).read()
+    url_param = [url_fin, None] + ([timeout] if timeout != -1 else [])
+    for retry_times in range(retry+1):
+        try:
+            seg = urllib2.urlopen(*url_param).read()
+        except urllib2.URLError as e:
+            if type(e.reason).__name__ != "timeout":
+                raise e
+        else:
+            break
+
     break_sign = '-'*130
 
     seg_pat = re.compile('<pre>(.*?)</pre>', re.DOTALL)
